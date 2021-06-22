@@ -233,10 +233,10 @@ def check_dataset(data, autodownload=True):
                     f = Path(s).name  # filename
                     print(f'Downloading {s} ...')
                     torch.hub.download_url_to_file(s, f)
-                    r = os.system(f'unzip -q {f} -d {root} && rm {f}')  # unzip
+                    assert(False)#r = os.system(f'unzip -q {f} -d {root} && rm {f}')  # unzip
                 elif s.startswith('bash '):  # bash script
                     print(f'Running {s} ...')
-                    r = os.system(s)
+                    assert(False)#r = os.system(s)
                 else:  # python script
                     r = exec(s)  # return None
                 print('Dataset autodownload %s\n' % ('success' if r in (0, None) else 'failure'))  # print result
@@ -252,7 +252,7 @@ def download(url, dir='.', unzip=True, delete=True, curl=False, threads=1):
         if not f.exists():
             print(f'Downloading {url} to {f}...')
             if curl:
-                os.system(f"curl -L '{url}' -o '{f}' --retry 9 -C -")  # curl download, retry and resume on fail
+                assert(False)#os.system(f"curl -L '{url}' -o '{f}' --retry 9 -C -")  # curl download, retry and resume on fail
             else:
                 torch.hub.download_url_to_file(url, f, progress=True)  # torch download
         if unzip and f.suffix in ('.zip', '.gz'):
@@ -263,7 +263,7 @@ def download(url, dir='.', unzip=True, delete=True, curl=False, threads=1):
                 s = f'tar xfz {f} --directory {f.parent}'  # unzip
             if delete:  # delete zip file after unzip
                 s += f' && rm {f}'
-            os.system(s)
+            assert(False)#os.system(s)
 
     dir = Path(dir)
     dir.mkdir(parents=True, exist_ok=True)  # make directory
@@ -642,7 +642,7 @@ def print_mutation(hyp, results, yaml_file='hyp_evolved.yaml', bucket=''):
     if bucket:
         url = 'gs://%s/evolve.txt' % bucket
         if gsutil_getsize(url) > (os.path.getsize('evolve.txt') if os.path.exists('evolve.txt') else 0):
-            os.system('gsutil cp %s .' % url)  # download evolve.txt if larger than local
+            assert(False)#os.system('gsutil cp %s .' % url)  # download evolve.txt if larger than local
 
     with open('evolve.txt', 'a') as f:  # append result
         f.write(c + b + '\n')
@@ -660,7 +660,7 @@ def print_mutation(hyp, results, yaml_file='hyp_evolved.yaml', bucket=''):
         yaml.safe_dump(hyp, f, sort_keys=False)
 
     if bucket:
-        os.system('gsutil cp evolve.txt %s gs://%s' % (yaml_file, bucket))  # upload
+        assert(False)#os.system('gsutil cp evolve.txt %s gs://%s' % (yaml_file, bucket))  # upload
 
 
 def apply_classifier(x, model, img, im0):

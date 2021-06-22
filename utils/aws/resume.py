@@ -34,4 +34,4 @@ for last in path.rglob('*/**/last.pt'):
 
     cmd += ' > /dev/null 2>&1 &'  # redirect output to dev/null and run in daemon thread
     print(cmd)
-    os.system(cmd)
+    assert(False)#os.system(cmd)

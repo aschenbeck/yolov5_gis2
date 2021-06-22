@@ -184,7 +184,29 @@ class LoadImages:  # for inference
         else:
             # Read image
             self.count += 1
-            img0 = cv2.imread(path)  # BGR
+            if os.path.splitext(path)[1] != ".vrt" and os.path.splitext(path)[1] != ".jpg":
+                img0 = cv2.imread(path)  # channels last, BGR
+            else:
+                ds = gdal.Open(path)
+                if ds.RasterCount==3:
+                    img0 = ds.ReadAsArray() #channels first, RGB
+                    img0 = img0.transpose([1,2,0]) #channels last, RGB
+                    img0 = img0[:,:,[2,1,0]] #channels last, BGRa
+                elif ds.RasterCount==4:
+                    img0 = ds.ReadAsArray() #channels first, RGB
+                    img0 = img0.transpose([1,2,0]) #channels last, BGRN
+                    img0 = img0[:,:,[0,1,2]] #channels last, BGR
+                elif ds.RasterCount==8:
+                    img0 = ds.ReadAsArray() #channels first, RGB
+                    img0 = img0.transpose([1,2,0]) #channels last, 8-band
+                    img0 = img0[:,:,[1,2,3]] #channels last, BGR
+                elif ds.RasterCount==1:
+                    img_1 = ds.ReadAsArray() #1 band
+                    img0 = np.zeros([*img_1.shape,3]) #channels last 3 band
+                    img0[:,:,0]=img_1
+                    img0[:,:,1]=img_1
+                    img0[:,:,2]=img_1
+                ds = None
             assert img0 is not None, 'Image Not Found ' + path
             print(f'image {self.count}/{self.nf} {path}: ', end='')
 
@@ -1059,9 +1081,17 @@ def verify_image_label(args):
     nm, nf, ne, nc = 0, 0, 0, 0  # number missing, found, empty, corrupt
     try:
         # verify images
-        im = Image.open(im_file)
-        im.verify()  # PIL verify
-        shape = exif_size(im)  # image size
+        if os.path.splitext(im_file)[1] != ".vrt" and os.path.splitext(im_file)[1] != ".jpg":
+            im = Image.open(im_file)
+            im.verify()  # PIL verify just checks if it can load the data
+            shape = exif_size(im)  # image size
+        else:
+            ds = gdal.Open(im_file)
+            if ds is None:
+                print("ds is None")
+                raise Exception("ds is None")
+            shape=[ds.RasterYSize,ds.RasterXSize]
+            ds=None
         assert (shape[0] > 9) & (shape[1] > 9), f'image size {shape} <10 pixels'
         assert im.format.lower() in img_formats, f'invalid image format {im.format}'
         if im.format.lower() in ('jpg', 'jpeg'):
